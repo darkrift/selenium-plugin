@@ -1,7 +1,5 @@
 package hudson.plugins.selenium.configuration;
 
-import java.util.List;
-
 import hudson.model.Descriptor;
 
 public abstract class ConfigurationDescriptor extends

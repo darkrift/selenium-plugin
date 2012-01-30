@@ -2,13 +2,12 @@ package hudson.plugins.selenium;
 
 import hudson.DescriptorExtensionList;
 import hudson.Extension;
-import hudson.model.Hudson;
 import hudson.model.Node;
 import hudson.plugins.selenium.configuration.Configuration;
 import hudson.plugins.selenium.configuration.ConfigurationDescriptor;
+import hudson.plugins.selenium.configuration.InheritConfiguration;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.NodePropertyDescriptor;
-import hudson.tools.ToolDescriptor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,16 +26,6 @@ public class NodePropertyImpl extends NodeProperty<Node> {
 	
 	private int port = 4444;
 	Configuration configType;
-	
-    /**
-     * Returns all the registered {@link ToolDescriptor}s.
-     */
-    public static DescriptorExtensionList<Configuration,ConfigurationDescriptor> configTypes() {
-        // use getDescriptorList and not getExtensionList to pick up legacy instances
-        return Hudson.getInstance().<Configuration,ConfigurationDescriptor>getDescriptorList(Configuration.class);
-    }
-    
-	
 	
     @DataBoundConstructor
     public NodePropertyImpl() {}
@@ -59,9 +48,24 @@ public class NodePropertyImpl extends NodeProperty<Node> {
 
     @Extension
     public static class DescriptorImpl extends NodePropertyDescriptor {
-        @Override
+        
+    	@Override
         public String getDisplayName() {
             return "Enable Selenium Grid on this node";
         }
+    	
+    	public DescriptorExtensionList<Configuration,ConfigurationDescriptor> getTypes() {
+    		return Configuration.all();
+    	}
+    	
+    	/**
+    	 * @return default configuration for nodes
+    	 */
+    	public Configuration getDefaultConfiguration() {
+    		return DEFAULT_CONFIGURATION;
+    	}
+    	
+    	public static final Configuration DEFAULT_CONFIGURATION = new InheritConfiguration();
+    	
     }
 }
