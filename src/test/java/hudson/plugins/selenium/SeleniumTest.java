@@ -28,6 +28,7 @@ import com.thoughtworks.selenium.Selenium;
 
 /**
  * @author Kohsuke Kawaguchi
+ * @author Richard Lavoie
  */
 public class SeleniumTest extends HudsonTestCase {
     @Override
@@ -48,16 +49,14 @@ public class SeleniumTest extends HudsonTestCase {
         CustomConfiguration cc = new CustomConfiguration(4444, false, false, false, false, -1, "", browsers);        
         
         HtmlPage newSlave = submit(new WebClient().goTo("configure").getFormByName("config"));
-        DumbSlave slave = new DumbSlave("foo", "dummy",
-				createTmpDir().getPath(), "1", Mode.NORMAL, "foo", createComputerLauncher(null), RetentionStrategy.NOOP, Collections.singletonList(new NodePropertyImpl(cc)));
+        DumbSlave slave = new DumbSlave("foo", "dummy", createTmpDir().getPath(), "1", Mode.NORMAL, "foo", createComputerLauncher(null), RetentionStrategy.NOOP, Collections.singletonList(new NodePropertyImpl(cc)));
 
         hudson.addNode(slave);
 
         waitForRC();
         Thread.sleep(5000);
 
-        Selenium browser = new DefaultSelenium("localhost",
-            4444, "*htmlunit"/* /usr/lib/firefox-3.6.3/firefox-bin"*/, "http://www.google.com");
+        Selenium browser = new DefaultSelenium("localhost", 4444, "*htmlunit", "http://www.google.com");
         browser.start();
 
         try {
@@ -103,12 +102,26 @@ public class SeleniumTest extends HudsonTestCase {
     }
 
     public void testLabelMatch() throws Exception {
-        createSlave(Label.get("foo"));
+        getPlugin().waitForHubLaunch();
+        
+        // system config to set the root URL
+        
+        List<Browser> browsers = new ArrayList<Browser>();
+        browsers.add(new HTMLUnitBrowser(1));
 
-        DesiredCapabilities dc = DesiredCapabilities.firefox();
+        CustomConfiguration cc = new CustomConfiguration(4444, false, false, false, false, -1, "", browsers);        
+        
+        HtmlPage newSlave = submit(new WebClient().goTo("configure").getFormByName("config"));
+        DumbSlave slave = new DumbSlave("foo", "dummy", createTmpDir().getPath(), "1", Mode.NORMAL, "foo", createComputerLauncher(null), RetentionStrategy.NOOP, Collections.singletonList(new NodePropertyImpl(cc)));
+
+        hudson.addNode(slave);
+
+        waitForRC();
+
+        DesiredCapabilities dc = DesiredCapabilities.htmlUnit();
         dc.setCapability("jenkins.label","bar");
         try {
-            new RemoteWebDriver(new URL("http://localhost:4444/wd/hub"),dc);
+            WebDriver dr = new RemoteWebDriver(new URL("http://localhost:4444/wd/hub"),dc);
             fail(); // should have failed
         } catch (Exception e) {
             e.printStackTrace();
