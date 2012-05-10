@@ -49,7 +49,7 @@ public class ComputerListenerImpl extends ComputerListener implements Serializab
         	np = Hudson.getInstance().getGlobalNodeProperties().get(NodePropertyImpl.class);
         } else {
         	np = c.getNode().getNodeProperties().get(NodePropertyImpl.class);
-        }
+        }        
         
         if (np == null) {
         	//the node is configured to not start a grid node
