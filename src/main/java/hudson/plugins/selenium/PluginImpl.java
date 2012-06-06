@@ -22,6 +22,7 @@ import hudson.FilePath;
 import hudson.Plugin;
 import hudson.Proc;
 import hudson.Launcher.LocalLauncher;
+import hudson.Launcher.ProcStarter;
 import hudson.console.HyperlinkNote;
 import hudson.model.Action;
 import hudson.model.Describable;
@@ -299,7 +300,25 @@ public class PluginImpl extends Plugin implements Action, Serializable, Describa
         listener.getLogger().println("Starting " + displayName);
         
         // TODO add XVFB options here
-        Proc p = vmb.launch(new LocalLauncher(listener)).stdout(listener).start();
+
+	LocalLauncher launcher = new LocalLauncher(listener);
+
+	ProcStarter commandStarter = vmb.launch(launcher);
+        
+	List<String> commandResult = commandStarter.cmds();
+	int maskSize = commandStarter.masks().length;
+	boolean[] maskResult = new boolean[ maskSize +1 ] ;
+	System.arraycopy(commandStarter.masks(), 0, maskResult, 0, maskSize);
+
+	if (launcher.isUnix()) {
+	 	commandResult.add(0, "xvfb-run");
+	}
+	listener.getLogger().println("Command to launch : " + commandResult);
+
+	commandStarter = commandStarter.cmds(commandResult).masks(maskResult) ;
+
+	Proc p = commandStarter.stdout(listener).start();
+	//Proc p = vmb.launch(new LocalLauncher(listener)).stdout(listener).start();
 
         Socket s = serverSocket.accept();
         serverSocket.close();
